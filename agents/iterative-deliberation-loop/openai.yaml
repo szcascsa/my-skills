@@ -1,0 +1,4 @@
+interface:
+  display_name: "Iterative Deliberation Loop"
+  short_description: "Iterative discussion-review orchestration"
+  default_prompt: "Use this skill to run a multi-attempt discussion campaign: frame the problem, run one deep discussion attempt, review the artifact, decide whether to continue, revise, branch, respawn, or stop, and maintain an explicit attempt ledger."

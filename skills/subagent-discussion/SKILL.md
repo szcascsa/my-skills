@@ -103,6 +103,11 @@ description: Use when a user wants multiple subagents or roles to discuss, debat
 - 用户明确要求精细控制
 - 讨论进入 replay / degraded / spokesperson 路径
 
+对 `idea_funnel + minimal_launch_lane`，默认再加一条 runtime 约束：
+- 正常控制流优先走 `blind_diverge -> shortlist -> delta-collapse check -> optional one-shot rescue -> critique_1`
+- 第一次 `critique` 前优先依赖 shortlist 可区分性，而不是先要求 `SelectionBoard` 完整初始化
+- 不要默认给首波 generator 大规模分配 `SearchFrame`
+
 ## 三层控制面
 
 本 skill 的运行有三层，不要混用：
@@ -257,13 +262,24 @@ runtime 语义与降级细节见 [runtime-modes.md](references/runtime-modes.md)
    让 `2-4` 位差异足够大的参与者独立生成候选，不要一开始就互相看答案。
    默认要求：
    - 每人 `1-2` 个候选
-   - 必须说明 `why_new`
+   - 常规 lane 下，候选应说明 `why_new`
    - 必须说明 `killer_risk`
    - 必须说明 `fastest_test`
+
+   对 `idea_funnel + minimal_launch_lane`：
+   - 首波默认先跑普通 `blind_diverge`
+   - 首波候选至少要给出 `novelty_basis`、`killer_risk`、`fastest_test`
+   - `why_new` 可以在 shortlist 形成后补写，不要求首波全量写满
 
 3. **Cluster and select**
    主持人去重、聚类、合并近似项，只保留 `2-4` 个值得继续压测的候选。
    如有明显 outlier，默认保留至少 `1` 个，不要过早清洗掉。
+
+   对 `idea_funnel + minimal_launch_lane`，进入第一次 `critique` 前再多做一步 `delta-collapse check`：
+   - 只对 shortlist 候选临时补 `nearest_baselines`、`decisive_delta`、`discriminating_test`、`collapse_condition`
+   - 若 shortlist 明显塌到同一 baseline 家族，允许一次且仅一次 `SearchFrame rescue wave`
+   - rescue 只激活 `1-2` 位 generator，每人只分配 `1` 个 operator，并带 `do_not_reuse`
+   - rescue 完成后立刻回到 shortlist，不要把它扩成新 phase
 
 4. **Critique**
    把候选投给最相关的 `critic` / `red team`。
@@ -285,8 +301,15 @@ runtime 语义与降级细节见 [runtime-modes.md](references/runtime-modes.md)
 1. **进入第一次 `critique` 前**
    必须已有可区分的 candidate set：
    - 至少 `2` 个可区分候选，或显式标注为 `moderator-generated fallback`
-   - 每个候选至少包含 `candidate_id`、`why_new`、`novelty_basis`、`killer_risk`
-   - `SelectionBoard` 已记录当前保留项与 outlier 保留原因
+   - 常规 lane 下，每个候选至少包含 `candidate_id`、`why_new`、`novelty_basis`、`killer_risk`
+   - 常规 lane 下，`SelectionBoard` 已记录当前保留项与 outlier 保留原因
+
+   对 `idea_funnel + minimal_launch_lane` 例外：
+   - gate 改成 candidate-driven，而不是 `SelectionBoard`-driven
+   - shortlist 中至少有 `2` 个可区分候选；若执行过一次 rescue 仍不足，则显式标记 `rescue_failed`
+   - 每个 shortlisted candidate 至少包含 `candidate_id`、`thesis`、`novelty_basis`、`killer_risk`、`fastest_test`
+   - 若执行过 `delta-collapse check`，再补 `nearest_baselines`、`decisive_delta`、`discriminating_test`、`collapse_condition`
+   - 若某候选需要 `2+` 个 baselines 才能描述，且其区分测试只在完整组合形态下成立，不得仅因与单一 baseline 局部重叠就提前 merge/collapse
 
 2. **输出最终 recommendation / shortlist 前**
    必须已有可见 artifact 与 objection disposition：

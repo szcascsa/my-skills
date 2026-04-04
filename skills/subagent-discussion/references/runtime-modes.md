@@ -133,9 +133,15 @@ termination_reason: ""
 默认只强制两道 gate：
 
 1. **before first critique**
-   - 有可区分 candidate set
-   - 每个候选至少具备 `candidate_id`、`why_new`、`novelty_basis`、`killer_risk`
-   - `SelectionBoard` 已初始化
+   - 常规 lane：
+     - 有可区分 candidate set
+     - 每个候选至少具备 `candidate_id`、`why_new`、`novelty_basis`、`killer_risk`
+     - `SelectionBoard` 已初始化
+   - `idea_funnel + minimal_launch_lane + normal runtime` 例外：
+     - 控制流改成 `blind_diverge -> shortlist -> delta-collapse check -> optional one-shot rescue -> critique_1`
+     - 只要求 shortlist 可区分，不要求 `SelectionBoard` 先初始化
+     - 每个 shortlisted candidate 至少具备 `candidate_id`、`thesis`、`novelty_basis`、`killer_risk`、`fastest_test`
+     - 若执行过 `delta-collapse check`，再补 `nearest_baselines`、`decisive_delta`、`discriminating_test`、`collapse_condition`
 
 2. **before final recommendation**
    - 已有用户可见 artifact
@@ -146,9 +152,44 @@ termination_reason: ""
 - 不要把中间所有 phase 都做成同等硬阻断
 - `blind_diverge` 允许 frontier candidates 不完整，但不允许不可区分
 
+### `idea_funnel` pre-critique operational rules
+
+#### Trigger Computability
+
+| Trigger | Operational Definition | Action |
+| --- | --- | --- |
+| `family_count < 2` | shortlist 中去重后的 `(primary_baseline, decisive_delta)` 唯一对少于 `2` 个 | 允许一次 rescue |
+| `top2_same_family` | top-2 共享同一 `primary_baseline`，且差异主要落在参数、包装或 tactic 层 | 允许一次 rescue |
+| `hybrid_under_flattening` | 某候选有 `2+ nearest_baselines`，且其 `discriminating_test` 只在完整组合形态下成立 | 禁止直接 merge；先保留进 critique |
+| `distinct_candidates < 2` | 按允许的 merge 规则收缩后，独立候选少于 `2` 个 | 允许一次 rescue |
+
+其中：
+- `primary_baseline` 指 `nearest_baselines` 的首个主参照项
+- `family` 只从 `(primary_baseline, decisive_delta)` 派生，不额外引入新结构
+
+#### Rescue Admission
+
+| Rule | Constraint |
+| --- | --- |
+| rescue 次数 | 最多 `1` 次 |
+| 激活人数 | 最多 `2` 个 generator |
+| 每人 operator | 只能 `1` 个 |
+| `do_not_reuse` 作用域 | 不得复用当前塌缩主簇的 `primary_baseline` 或主机制，除非满足 hybrid protection |
+| 候选入榜 | 最多加入 `1` 个 challenger |
+| replace rule | 若 challenger 与 weakest shortlist item 共享同一 `primary_baseline`，优先替换 weakest 同族项 |
+| append rule | 若无同族弱项，则 append 后按 distinguishability trim 回原 shortlist 大小 |
+
+#### Precedence
+
+| Conflict | Precedence |
+| --- | --- |
+| `hybrid protection` vs `collapse merge` | `hybrid protection` 优先 |
+| `do_not_reuse` vs operator 自由发挥 | `do_not_reuse` 优先 |
+| 局部相似 vs `collapse_condition` | 只有完整候选不再提供独立 `discriminating_test` 且满足 `collapse_condition` 时才允许 collapse |
+
 ## 5. Minimum Runtime Packet
 
-launch / replay / replacement 默认都复用同一套最小 packet：
+normal launch / normal replacement 默认复用这套最小 packet：
 
 ```yaml
 active_phase: ""
@@ -156,7 +197,6 @@ round_id: 0
 objective_spec: {}
 quality_rubric: {}
 verified_facts: []
-candidate_lineage_in_scope: []
 your_last_position: ""
 what_changed_since_last_round: ""
 named_targets: []
@@ -164,7 +204,17 @@ expected_artifact: ""
 runtime_mode: persistent_agents | stateless_round_replay | single-shot_fallback
 ```
 
-如果 packet 缺少 `candidate_lineage_in_scope` 或 `named_targets`，优先补齐，不要直接推进。
+以下字段改为 replay / degraded / spokesperson rehydrate 时强制补齐，而不是 normal pre-critique 的默认负担：
+
+```yaml
+candidate_lineage_in_scope: []
+```
+
+对 `idea_funnel + minimal_launch_lane` 的 normal pre-critique 路径：
+- 不要因为缺少 `candidate_lineage_in_scope` 就阻断进入第一次 `critique`
+- 只要 shortlist 可区分，且最小 candidate fields 已齐，就可以推进
+
+如果当前是 replay / degraded / spokesperson 路径，且 packet 缺少 `candidate_lineage_in_scope` 或 `named_targets`，优先补齐，不要直接推进。
 
 ## 6. 主持人遥测规则
 

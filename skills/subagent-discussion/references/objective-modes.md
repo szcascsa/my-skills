@@ -44,6 +44,16 @@
 - 去重时不要把高新颖 outlier 全清掉
 - 每个候选都要带 `killer_risk`、`fastest_test` 和 `novelty_basis`
 - 被保留的 outlier 必须至少经历一次完整 `CritiqueMemo`
+- 默认先跑一轮普通 `blind_diverge`，不要一开始就把 `SearchFrame` 当成常驻层
+- 只有 shortlist 明显塌到同一 baseline 家族，或 pre-critique 可区分候选少于 `2` 个时，才允许一次且仅一次 `SearchFrame rescue wave`
+- `delta-collapse check` 只对 shortlist 做，不对全量草案加税；临时补的字段是 `nearest_baselines`、`decisive_delta`、`discriminating_test`、`collapse_condition`
+- rescue wave 每次最多激活 `1-2` 位 generator，每人只给 `1` 个 operator，并带 `do_not_reuse`
+- 推荐的最小 operators 只有 4 个：
+  - `MechanismSwap`：目标不变，但禁止复用塌缩簇的主机制
+  - `BoundaryShift`：把干预位置上移或下移一层
+  - `AssumptionFlip`：要求候选只在某个主前提失效或反转时才成立
+  - `AdjacencyTransfer`：从相邻领域借机制并写清 mapping
+- 若某候选需要 `2+` 个 baselines 才能描述，且其 `discriminating_test` 只在完整组合形态下成立，则在第一次 `critique` 前默认按 hybrid candidate 保留，不因与单一 baseline 局部重叠直接 merge
 
 ## 2. `architecture_synthesis`
 
