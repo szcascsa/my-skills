@@ -7,7 +7,7 @@
 - `skills/`
   存放可直接安装或复制的 skill 包
 - `agents/`
-  存放与这些 skill 配套使用的 agent 配置
+  存放独立的 subagent 文件
 
 ## Included Skills
 
@@ -18,10 +18,13 @@
 
 ## Included Agents
 
-- `agents/subagent-discussion/claude-opus-style.toml`
-  配套 `subagent-discussion` 的 deliberative 风格 agent
-- `agents/iterative-deliberation-loop/openai.yaml`
-  配套 `iterative-deliberation-loop` 的 outer review / control agent
+- `agents/claude-opus-style.toml`
+  独立的 deliberative 风格 subagent 文件
+
+## Skill-Local Agent Files
+
+- `skills/iterative-deliberation-loop/agents/openai.yaml`
+  `iterative-deliberation-loop` skill 自带的配套配置文件
 
 ## Relationship
 
@@ -38,4 +41,5 @@
   iterative-deliberation-loop/
 ```
 
-本仓库把 `agents/` 独立出来，主要是为了让远程仓库结构更清晰，便于管理与复用。
+根目录 `agents/` 只放独立 subagent 文件。
+skill 自己的配套文件继续留在对应 skill 目录内部。
