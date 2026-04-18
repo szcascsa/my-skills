@@ -1,0 +1,4 @@
+interface:
+  display_name: "Root Cause Roundtable"
+  short_description: "Deep multi-agent root-cause debate and convergence"
+  default_prompt: "Use this skill to run a multi-round root-cause roundtable on:"
