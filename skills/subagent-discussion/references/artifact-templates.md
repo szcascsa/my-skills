@@ -6,10 +6,19 @@
 
 ```text
 【主持】Mode Disclosure
-- mode：persistent / replay / spokesperson / degraded_synthesis
+- mode：persistent / replay / degraded
 - content_origin：participant-originated / moderator-synthesized / mixed
 - degrade_event：...
 - synthesis_used：yes / no
+```
+
+如果当前 `attempt_kind = exploratory_snapshot` 或 `completion_status = degraded`，在 artifact 顶部追加：
+
+```text
+【主持】Attempt Guarantee
+- attempt_kind：full_deliberation / exploratory_snapshot
+- completion_status：completed / degraded / blocked
+- skipped_phases：...
 ```
 
 ## 1. `idea portfolio`
@@ -122,9 +131,10 @@
 - ...
 
 【主持】Objection Disposition
-- accepted：...
+- open：...
+- addressed：...
 - mitigated：...
-- unresolved：...
+- closed：...
 
 【主持】Next Step
 - ...
