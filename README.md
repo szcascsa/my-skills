@@ -17,6 +17,8 @@
   跨 attempt 的 outer controller，负责 review loop、branch control、objection lifecycle、cross-session resume
 - `skills/root-cause-roundtable`
   多个 `root-cause-architect` 的根因会诊与收敛引擎，负责 `blind isolation -> clustering -> cross-examination -> forced convergence -> exhaustive convergence loop`
+- `skills/ralph-core`
+  手动触发的实现-审阅闭环协议，负责 `completion ledger -> implement -> verify -> independent subagent review -> fix -> repeat`
 
 ## Included Agents
 
@@ -38,6 +40,7 @@
 - `iterative-deliberation-loop` 解决“多轮讨论如何审阅、继续、分支、重组和恢复”
 - `root-cause-architect` 提供“只追主因、不接受表层解释”的单体分析能力
 - `root-cause-roundtable` 把多个 `root-cause-architect` 组织成标准/穷尽两种模式的根因收敛流程
+- `ralph-core` 解决“实现、验证、独立审阅、继续迭代直到全部既定内容完成”的执行闭环
 
 ## Suggested Local Layout
 
@@ -47,6 +50,7 @@
 ~/.codex/skills/
   subagent-discussion/
   iterative-deliberation-loop/
+  ralph-core/
 ```
 
 根目录 `agents/` 只放独立 subagent 文件。
